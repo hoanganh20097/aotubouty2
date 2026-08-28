@@ -1870,9 +1870,9 @@ _modules["config"] = function()
     
     -- User-configurable options
     local USER_CONFIG = {
-        Fruit = "Auto",         -- Auto-select best fruit
-        Region = "Auto",        -- Auto-select best region
-        Faction = "Auto",       -- Auto-select faction
+        Fruit = "T-Rex",         -- Default test fruit
+        Region = "Singapore",        -- Default test region
+        Faction = "Pirate",       -- Default test faction
         StartupSound = true,    -- Play bankai sound on awakening/v4
         SoundUrl = "",          -- Custom startup sound URL (mp3/ogg) - leave empty for default
         Webhook = "",           -- Discord webhook URL
@@ -2305,9 +2305,7 @@ _modules["auth"] = function()
     -- Set your ONE authentication key here.
     -- Do not commit a real production secret to a public repository.
     local SINGLE_AUTH_KEY = "NEXUS-TEST-2026"
-
-    -- Development-only switch. Keep false for normal authentication.
-    local DEV_MODE = true
+    local DEV_BYPASS_AUTH = true
 
     Auth.IsAuthenticated = false
     Auth.KeyData = nil
@@ -2315,9 +2313,19 @@ _modules["auth"] = function()
 
     function Auth.init(utilsModule)
         Utils = utilsModule
-        Auth.IsAuthenticated = false
-        Auth.KeyData = nil
+        Auth.IsAuthenticated = DEV_BYPASS_AUTH == true
+        Auth.KeyData = DEV_BYPASS_AUTH and {
+            key = SINGLE_AUTH_KEY,
+            expiresIn = math.huge,
+            hwidBound = false,
+            isFreeKey = false,
+            isPremium = true,
+            discordLinked = false
+        } or nil
         Auth.FreeKeyData = nil
+        if DEV_BYPASS_AUTH then
+            print("[NexusBounty] DEV auth bypass enabled")
+        end
     end
 
     local function normalizeKey(key)
@@ -2325,20 +2333,6 @@ _modules["auth"] = function()
             return ""
         end
         return key:gsub("^%s+", ""):gsub("%s+$", "")
-    end
-
-    function Auth.enableDevMode()
-        if not DEV_MODE then return false end
-        Auth.IsAuthenticated = true
-        Auth.KeyData = {
-            key = "DEV_MODE",
-            expiresIn = math.huge,
-            hwidBound = false,
-            isFreeKey = false,
-            isPremium = true,
-            discordLinked = false
-        }
-        return true
     end
 
     function Auth.validateKey(key, callback)
@@ -5933,18 +5927,13 @@ _modules["ui"] = function()
             end)
         end)
         
-        -- Development mode: skip the key screen only for local debugging.
-        if Auth and Auth.enableDevMode and Auth.enableDevMode() then
+        -- Authentication gate: DEV mode may already be authenticated.
+        if Auth and Auth.isAuthenticated and Auth.isAuthenticated() then
             if UI.KeyScreen then UI.KeyScreen.Visible = false end
             if UI.Dashboard then UI.Dashboard.Visible = true end
             UI.startUpdateLoop()
-            if Config and (Config.isFirstRun() or not Config.isConfigured()) then
-                task.delay(0.5, function()
-                    UI.openConfig()
-                    if Utils then Utils.notify("NexusBounty", "DEV MODE: authentication skipped for testing.") end
-                end)
-            end
-        -- Check for cached key (auto-login)
+            if Utils then Utils.notify("NexusBounty", "Developer authentication bypass active.", 3) end
+            -- In dev-test mode, use the configured defaults and do not block the combat start with the config dialog.
         elseif Auth then
             Auth.tryCachedKey(function(success, message)
                 if success then
@@ -7558,9 +7547,57 @@ _modules["main"] = function()
                 end
     
                 local PlayerGui = lp.PlayerGui
+
+                -- Robust server-hop fallback: use Roblox's public server list when
+                -- the in-game ServerBrowser is unavailable or broken.
+                local function fallbackServerHop()
+                    local requestFn = request or http_request or (syn and syn.request) or (http and http.request)
+                    local candidates = {}
+
+                    pcall(function()
+                        if requestFn then
+                            local cursor = ""
+                            for _ = 1, 3 do
+                                local url = "https://games.roblox.com/v1/games/" .. tostring(game.PlaceId) .. "/servers/Public?sortOrder=Asc&limit=100"
+                                if cursor ~= "" then
+                                    url = url .. "&cursor=" .. HttpService:UrlEncode(cursor)
+                                end
+                                local response = requestFn({Url = url, Method = "GET"})
+                                local body = response and (response.Body or response.body)
+                                if not body then break end
+                                local decoded = HttpService:JSONDecode(body)
+                                for _, server in ipairs(decoded.data or {}) do
+                                    if server.id and server.id ~= game.JobId and (server.playing or 0) < (server.maxPlayers or math.huge) then
+                                        table.insert(candidates, server.id)
+                                    end
+                                end
+                                cursor = decoded.nextPageCursor or ""
+                                if cursor == "" then break end
+                            end
+                        end
+                    end)
+
+                    if #candidates > 0 then
+                        local target = candidates[math.random(1, #candidates)]
+                        local ok, err = pcall(function()
+                            TeleportService:TeleportToPlaceInstance(game.PlaceId, target, lp)
+                        end)
+                        if ok then return true end
+                        warn("[NexusBounty] Server hop teleport failed: " .. tostring(err))
+                    end
+
+                    -- Last-resort random rejoin when the server list API is unavailable.
+                    local ok = pcall(function()
+                        TeleportService:Teleport(game.PlaceId, lp)
+                    end)
+                    return ok
+                end
+
                 if not PlayerGui:FindFirstChild("ServerBrowser") then
-                    local _env2 = getgenv()
-                    _env2.IsServerHopping = false
+                    local hopped = fallbackServerHop()
+                    if not hopped then
+                        getgenv().IsServerHopping = false
+                    end
                     return
                 end
                 PlayerGui.ServerBrowser.Enabled = true
@@ -7569,8 +7606,10 @@ _modules["main"] = function()
                 local SearchRegion = Filters and Filters:FindFirstChild("SearchRegion")
                 local TextBox = SearchRegion and SearchRegion:FindFirstChild("TextBox")
                 if not TextBox then
-                    local _env3 = getgenv()
-                    _env3.IsServerHopping = false
+                    local hopped = fallbackServerHop()
+                    if not hopped then
+                        getgenv().IsServerHopping = false
+                    end
                     return
                 end
                 TextBox.Text = Selected_Region
@@ -8074,27 +8113,44 @@ print("[NexusBounty] Initializing UI...")
 -- Init UI first so Key System shows up
 UI.init(Utils, Config, Auth)
 
-print("[NexusBounty] UI ready! Waiting for authentication...")
+-- Dev-test: keep the UI available via RightControl, but do not leave it covering the game.
+task.defer(function()
+    pcall(function()
+        if Auth and Auth.isAuthenticated() and UI.MainFrame then
+            UI.MainFrame.Visible = false
+        end
+    end)
+end)
+
+print("[NexusBounty] UI initialized; combat startup continues in background")
 
 -- ============================================
 -- MAIN LOGIC LOOP
 -- ============================================
 
 task.spawn(function()
-    -- 1. Wait for Auth (DEV_MODE is explicitly enabled above for local debugging)
-    if Auth.enableDevMode then Auth.enableDevMode() end
+    -- Dev-test mode: auth is local and config has working defaults.
     while not Auth.isAuthenticated() do
         task.wait(0.5)
     end
     
     print("[NexusBounty] Authenticated! Loading character...")
     
-    -- 2. Init Main Logic (Strictly after Auth)
     Main.init(Utils, Config, UI)
     
-    -- 3. Wait for Configuration (UI) to be set by the user or via getgenv().Config
-    while not Config.isConfigured() do
-        task.wait(0.5)
+    -- Use defaults immediately; only wait if a genuinely incomplete config remains.
+    local deadline = os.clock() + 10
+    while not Config.isConfigured() and os.clock() < deadline do
+        task.wait(0.25)
+    end
+    if not Config.isConfigured() then
+        warn("[NexusBounty] Config incomplete; using fallback defaults")
+        if Config.Values then
+            Config.Values.Fruit = Config.Values.Fruit ~= "Auto" and Config.Values.Fruit or "T-Rex"
+            Config.Values.Region = Config.Values.Region ~= "Auto" and Config.Values.Region or "Singapore"
+            Config.Values.Faction = Config.Values.Faction ~= "Auto" and Config.Values.Faction or "Pirate"
+        end
+        Main.init(Utils, Config, UI)
     end
     print("[NexusBounty] Fully configured! Proceeding...")
 
