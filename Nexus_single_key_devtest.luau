@@ -7646,28 +7646,11 @@ _modules["main"] = function()
             local function FruitAttackPlayer()
                 local config = FruitConfigs[SELECTED_FRUIT]
                 if not config then return end
-
                 local myChar = lp.Character
                 if not myChar then return end
                 local myHRP = myChar:FindFirstChild("HumanoidRootPart")
                 if not myHRP then return end
-
-                -- Aim at the currently selected bounty target instead of a fixed
-                -- downward vector. The old fixed vector made the attack fire away
-                -- from the target even while teleport/target selection was working.
-                local direction = Vector3.new(0, 0, -1)
-                if SelectedPlayer then
-                    local target = Players:FindFirstChild(SelectedPlayer)
-                    local targetChar = target and target.Character
-                    local targetHRP = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
-                    if targetHRP then
-                        local delta = targetHRP.Position - myHRP.Position
-                        if delta.Magnitude > 0.001 then
-                            direction = delta.Unit
-                        end
-                    end
-                end
-
+                local direction = Vector3.new(0, -0.9, 0.03)
                 local tool = myChar:FindFirstChild(config.ToolName)
                 if not tool then
                     EquipFruit()
@@ -7675,20 +7658,14 @@ _modules["main"] = function()
                     tool = myChar:FindFirstChild(config.ToolName)
                     if not tool then return end
                 end
-
                 local remote = tool:FindFirstChild(config.RemoteName)
                 if not remote then return end
-
                 pcall(function()
                     local args = config.Args(direction)
-                    if remote:IsA("RemoteEvent") then
-                        remote:FireServer(unpack(args))
-                    elseif remote:IsA("RemoteFunction") then
-                        remote:InvokeServer(unpack(args))
-                    end
+                    remote:FireServer(unpack(args))
                 end)
             end
-    
+
             local function GetAllValidPlayers()
                 local validPlayers = {}
                 for _, player in pairs(Players:GetPlayers()) do
@@ -7849,7 +7826,7 @@ _modules["main"] = function()
             -- ============================================
             -- CONTINUOUS M1 ATTACK LOOP — NEVER STOPS
             -- ============================================
-            print("[HOÀNG ANH GAMER] [HYPER] Starting M1 attack loop (target-aim enabled)")
+            print("[HOÀNG ANH GAMER] [HYPER] Starting M1 attack loop (original remote path)")
             task.spawn(function()
                 while Main.Running and not getgenv().NexusShuttingDown do
                     task.wait(0.01)
