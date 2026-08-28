@@ -7303,7 +7303,8 @@ _modules["main"] = function()
             local FruitAttackRange = 100
             local LOW_HEALTH_THRESHOLD = 5000
             local SAFE_HEALTH_THRESHOLD = 9000
-            local ESCAPE_HEIGHT = 273861
+            local ESCAPE_HEIGHT = 0
+            local MAX_VERTICAL_SNAP = 35
             local InstaTpConnection = nil
             local SelectedPlayer = nil
             local CurrentTargetPlayer = nil
@@ -7321,35 +7322,27 @@ _modules["main"] = function()
                     InstaTpConnection:Disconnect()
                     InstaTpConnection = nil
                 end
+                -- Do not force the character to an extreme Y coordinate while low HP.
+                -- The old 273861-stud escape was the source of the visible flying/sky bug.
                 local escapeActive = true
-                task.spawn(function()
-                    while escapeActive do
-                        pcall(function()
-                            local char = lp.Character
-                            if char then
-                                local hrp = char:FindFirstChild("HumanoidRootPart")
-                                if hrp then
-                                    local pos = hrp.Position
-                                    hrp.CFrame = CFrame.new(pos.X, pos.Y + ESCAPE_HEIGHT, pos.Z)
-                                end
-                            end
-                        end)
-                        task.wait(0.05)
-                    end
-                end)
-                while Main.Running and not getgenv().NexusShuttingDown do
-                    task.wait(0.5)
+                local started = tick()
+                while escapeActive and Main.Running and not getgenv().NexusShuttingDown do
+                    task.wait(0.25)
                     local char = lp.Character
-                    if char then
-                        local humanoid = char:FindFirstChild("Humanoid")
-                        if humanoid and humanoid.Health >= SAFE_HEALTH_THRESHOLD then
-                            break
-                        end
+                    local humanoid = char and char:FindFirstChild("Humanoid")
+                    if humanoid and humanoid.Health >= SAFE_HEALTH_THRESHOLD then
+                        break
+                    end
+                    -- Never lock the player in an infinite low-health escape state.
+                    if tick() - started >= 4 then
+                        break
                     end
                 end
                 escapeActive = false
                 task.wait(0.2)
-                StartInstaTeleport()
+                if Main.Running and not getgenv().NexusShuttingDown then
+                    StartInstaTeleport()
+                end
             end
     
             local function IsHealthLow()
@@ -7537,23 +7530,8 @@ _modules["main"] = function()
                     InstaTpConnection:Disconnect(); InstaTpConnection = nil
                 end
     
-                local flag = Instance.new("BoolValue")
-                flag.Name = "CombatEscape"
-                flag.Parent = workspace
-                task.spawn(function()
-                    while flag.Parent do
-                        local char = lp.Character
-                        if char then
-                            local hrp = char:FindFirstChild("HumanoidRootPart")
-                            if hrp then
-                                local pos = hrp.Position
-                                hrp.CFrame = CFrame.new(pos.X, pos.Y + 273861, pos.Z)
-                            end
-                        end
-                        task.wait(0.05)
-                    end
-                end)
-    
+                -- Prevent the old server-hop escape from launching the character
+                -- 273861 studs upward. No forced vertical movement is needed here.
                 WaitForCombatEnd(30)
                 task.wait(1)
     
@@ -7724,7 +7702,14 @@ _modules["main"] = function()
                                         predictedPos = currentPos + (calculatedVelocity * PREDICTION_TIME)
                                     end
                                 end
-                                hrp.CFrame = CFrame.new(predictedPos) * CFrame.new(0, YOffset, 0)
+                                -- Prevent vertical snaps from carrying the character into the sky or under the map.
+                                local currentY = hrp.Position.Y
+                                local targetY = predictedPos.Y + YOffset
+                                local clampedY = math.clamp(targetY, currentY - MAX_VERTICAL_SNAP, currentY + MAX_VERTICAL_SNAP)
+                                local finalPos = Vector3.new(predictedPos.X, clampedY, predictedPos.Z)
+                                hrp.CFrame = CFrame.new(finalPos)
+                                hrp.AssemblyLinearVelocity = Vector3.zero
+                                hrp.AssemblyAngularVelocity = Vector3.zero
                             end
                         else
                             if PlayerPositionHistory[SelectedPlayer] then
