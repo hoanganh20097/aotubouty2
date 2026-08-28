@@ -1870,9 +1870,9 @@ _modules["config"] = function()
     
     -- User-configurable options
     local USER_CONFIG = {
-        Fruit = "Auto",         -- Auto-select best fruit
-        Region = "Auto",        -- Auto-select best region
-        Faction = "Auto",       -- Auto-select faction
+        Fruit = "T-Rex",         -- Default combat fruit
+        Region = "Singapore",   -- Default server region
+        Faction = "Pirate",     -- Default faction
         StartupSound = true,    -- Play bankai sound on awakening/v4
         SoundUrl = "",          -- Custom startup sound URL (mp3/ogg) - leave empty for default
         Webhook = "",           -- Discord webhook URL
@@ -2028,24 +2028,24 @@ _modules["config"] = function()
         -- Apply user settings (only the 8 allowed ones)
     
         -- Fruit
-        if mergedConfig.Fruit and Config.FRUITS[mergedConfig.Fruit] then
+        if mergedConfig.Fruit and Config.FRUITS[mergedConfig.Fruit] and mergedConfig.Fruit ~= "Auto" then
             finalConfig.Fruit = mergedConfig.Fruit
         else
-            finalConfig.Fruit = USER_CONFIG.Fruit
+            finalConfig.Fruit = USER_CONFIG.Fruit or "T-Rex"
         end
     
         -- Region
-        if mergedConfig.Region and table.find(Config.REGIONS, mergedConfig.Region) then
+        if mergedConfig.Region and table.find(Config.REGIONS, mergedConfig.Region) and mergedConfig.Region ~= "Auto" then
             finalConfig.Region = mergedConfig.Region
         else
-            finalConfig.Region = USER_CONFIG.Region
+            finalConfig.Region = USER_CONFIG.Region or "Singapore"
         end
     
         -- Faction
-        if mergedConfig.Faction and table.find(Config.FACTIONS, mergedConfig.Faction) then
+        if mergedConfig.Faction and table.find(Config.FACTIONS, mergedConfig.Faction) and mergedConfig.Faction ~= "Auto" then
             finalConfig.Faction = mergedConfig.Faction
         else
-            finalConfig.Faction = USER_CONFIG.Faction
+            finalConfig.Faction = USER_CONFIG.Faction or "Pirate"
         end
     
         -- StartupSound (v4Sound internally)
@@ -7828,7 +7828,7 @@ _modules["main"] = function()
             -- ============================================
             print("[HOÀNG ANH GAMER] [HYPER] Starting M1 attack loop")
             task.spawn(function()
-                while true do
+                while Main.Running and not getgenv().NexusShuttingDown do
                     task.wait(0.01)
                     pcall(function()
                         EquipFruit()
@@ -7844,7 +7844,7 @@ _modules["main"] = function()
             task.spawn(function()
                 task.wait(3)
                 local currentIndex = 1
-                while true do
+                while Main.Running and not getgenv().NexusShuttingDown do
                     -- Health escape
                     if IsHealthLow() then
                         PerformHealthEscape()
@@ -7901,8 +7901,8 @@ _modules["main"] = function()
             local Buso = { "Buso" }
             local SafeZoneActive = false
             task.spawn(function()
-                while true do
-                    task.wait(0.001)
+                while Main.Running and not getgenv().NexusShuttingDown do
+                    task.wait(0.01)
     
                     local player = Players.LocalPlayer
                     local char = player.Character
@@ -7953,7 +7953,8 @@ _modules["main"] = function()
             -- MAIN UTILITY LOOP (PvP, antimover, v4) — keeps thread alive
             -- ============================================
             print("[HOÀNG ANH GAMER] [HYPER] Starting PvP/utility loop — SCRIPT IS NOW FULLY ACTIVE")
-            while wait(1) do
+            while Main.Running and not getgenv().NexusShuttingDown do
+                task.wait(1)
                 pcall(function()
                     PvpEnable()
                     antimover()
@@ -8062,6 +8063,11 @@ local Auth = loadModule("auth")
 local UI = loadModule("ui")
 local Main = loadModule("main")
 
+-- Expose the real controller to the existing UI callbacks.
+pcall(function()
+    getgenv().NexusBounty = Main
+end)
+
 print("[HOÀNG ANH GAMER] Modules loaded!")
 
 -- Initialize
@@ -8104,74 +8110,61 @@ task.spawn(function()
     end
     print("[HOÀNG ANH GAMER] Fully configured! Proceeding...")
 
-    -- 4. Wait for Character & Select Team
-    local playerGui
-    repeat
-        task.wait()
-        playerGui = lp:FindFirstChild("PlayerGui")
-    until playerGui
+    -- 4. Wait for Character; only open the team selector when it is actually needed.
+    local char = lp.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
 
-    local mainGui
-    repeat
-        task.wait()
-        mainGui = playerGui:FindFirstChild("Main (minimal)")
-    until mainGui
+    if not hrp then
+        local playerGui = lp:WaitForChild("PlayerGui", 15)
+        local mainGui = playerGui and playerGui:FindFirstChild("Main (minimal)")
+        local faction = Config.get("Faction") or "Pirate"
+        local factionContainer = faction == "Marine" and "Marines" or "Pirates"
+        local btn = nil
 
-    local btn
-    local faction = Config.get("Faction") or "Pirate"
-    local factionContainer = faction == "Marine" and "Marines" or "Pirates"
-    repeat
-        task.wait()
-        btn = mainGui:FindFirstChild("ChooseTeam")
-            and mainGui.ChooseTeam:FindFirstChild("Container")
-            and mainGui.ChooseTeam.Container:FindFirstChild(factionContainer)
-            and mainGui.ChooseTeam.Container[factionContainer]:FindFirstChild("Frame")
-            and mainGui.ChooseTeam.Container[factionContainer].Frame:FindFirstChild("TextButton")
-    until btn
+        if mainGui then
+            local deadline = tick() + 10
+            repeat
+                task.wait(0.15)
+                btn = mainGui:FindFirstChild("ChooseTeam")
+                    and mainGui.ChooseTeam:FindFirstChild("Container")
+                    and mainGui.ChooseTeam.Container:FindFirstChild(factionContainer)
+                    and mainGui.ChooseTeam.Container[factionContainer]:FindFirstChild("Frame")
+                    and mainGui.ChooseTeam.Container[factionContainer].Frame:FindFirstChild("TextButton")
+            until btn or tick() >= deadline or getgenv().NexusShuttingDown
 
-    local char, hum
-    local attempt = 0
-    repeat
-        task.wait(0.5)
-        attempt = attempt + 1
-        
-        -- Try multiple methods to fire the button
-        pcall(function()
-            if firesignal then
-                firesignal(btn.Activated)
-                firesignal(btn.MouseButton1Click)
-                firesignal(btn.MouseButton1Down)
-                firesignal(btn.MouseButton1Up)
-            end
-            if getconnections then
-                for _, conn in pairs(getconnections(btn.Activated)) do
-                    conn:Fire()
-                end
-                for _, conn in pairs(getconnections(btn.MouseButton1Click)) do
-                    conn:Fire()
+            if btn then
+                for _ = 1, 8 do
+                    if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then break end
+                    pcall(function()
+                        if firesignal then firesignal(btn.Activated) end
+                        if getconnections then
+                            for _, conn in pairs(getconnections(btn.Activated)) do conn:Fire() end
+                        end
+                    end)
+                    task.wait(0.35)
                 end
             end
-        end)
-        
-        if lp.Character then
+        end
+
+        -- Wait for the spawned character, but never block forever.
+        local deadline = tick() + 20
+        repeat
+            task.wait(0.15)
             char = lp.Character
-            hum = char:FindFirstChild("Humanoid")
-        end
-        
-        if attempt > 10 then
-            print("[HOÀNG ANH GAMER] [!] Auto-team selection taking too long. Click it manually!")
-        end
-    until (char and hum) or getgenv().NexusShuttingDown
+            hum = char and char:FindFirstChildOfClass("Humanoid")
+            hrp = char and char:FindFirstChild("HumanoidRootPart")
+        until hrp or tick() >= deadline or getgenv().NexusShuttingDown
+    end
 
-    local hrp
-    repeat
-        task.wait()
-        hrp = char:FindFirstChild("HumanoidRootPart")
-    until hrp
+    if not hrp then
+        warn("[HOÀNG ANH GAMER] Character did not become ready; aborting this start attempt.")
+        return
+    end
 
     print("[HOÀNG ANH GAMER] Character loaded! Starting main logic...")
-    
-    -- 3. Start Main Logic
+
+    -- Start the existing combat engine.
     Main.start()
 end)
 
