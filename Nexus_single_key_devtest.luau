@@ -7658,12 +7658,21 @@ _modules["main"] = function()
                     tool = myChar:FindFirstChild(config.ToolName)
                     if not tool then return end
                 end
-                local remote = tool:FindFirstChild(config.RemoteName)
-                if not remote then return end
+                -- Use the Tool's native M1 activation first.
+                -- Keep the existing remote call as a compatibility fallback.
                 pcall(function()
-                    local args = config.Args(direction)
-                    remote:FireServer(unpack(args))
+                    if tool:IsA("Tool") then
+                        tool:Activate()
+                    end
                 end)
+
+                local remote = tool:FindFirstChild(config.RemoteName)
+                if remote and remote:IsA("RemoteEvent") then
+                    pcall(function()
+                        local args = config.Args(direction)
+                        remote:FireServer(unpack(args))
+                    end)
+                end
             end
 
             local function GetAllValidPlayers()
