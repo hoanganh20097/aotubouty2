@@ -1,4 +1,4 @@
--- NEXUS FREE v7.4 — SELF-CONTAINED
+-- HOÀNG ANH GAMER v7.4 — SELF-CONTAINED
 -- Build: 2026-02-26 14:53:53
 -- Build ID: 36ae3bc8057b
 -- By: Ryu & Cuakcer — #FREEWALTERSANCHEZ
@@ -7,7 +7,7 @@
 
 local _BUILD_VERSION = "7.4"
 local _BUILD_ID = "36ae3bc8057b"
-local _BUILD_BRAND = "NEXUS FREE"
+local _BUILD_BRAND = "HOÀNG ANH GAMER"
 
 -- ============================================
 -- ANTI-HOOK BOOTSTRAP — Pre-boot critical function snapshot
@@ -130,7 +130,7 @@ _modules["security"] = function()
         Centralized security for free script distribution.
         Function integrity, environment checks, metamethod detection,
         heartbeat integrity, silent degrade
-        NEXUS FREE — #FREEWALTERSANCHEZ
+        HOÀNG ANH GAMER
     ]]
     
     local Security = {}
@@ -515,7 +515,7 @@ _modules["utils"] = function()
                 end
             end
     
-            print("[NexusBounty] [+] Workspace folders initialized")
+            print("[HOÀNG ANH GAMER] [+] Workspace folders initialized")
         end)
     end
     
@@ -791,7 +791,7 @@ _modules["utils"] = function()
         if not webhookUrl or webhookUrl == "" then return false end
     
         local embed = {
-            title = data.title or "NexusBounty",
+            title = data.title or "HOÀNG ANH GAMER",
             description = data.description or "",
             color = data.color or 10181046,
             fields = data.fields or {},
@@ -802,7 +802,7 @@ _modules["utils"] = function()
             },
             thumbnail = { url = data.thumbnail or Utils.NEXUS_LOGO },
             footer = {
-                text = "NexusBounty v" .. Utils.CLIENT_VERSION .. " | By: Ryu & Cuakcer",
+                text = "HOÀNG ANH GAMER v" .. Utils.CLIENT_VERSION .. " | By: Ryu & Cuakcer",
                 icon_url = Utils.NEXUS_LOGO
             },
             timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
@@ -973,7 +973,7 @@ _modules["utils"] = function()
                     -- Auto-migrate v1 to v2 format
                     if err == "migrated_from_v1" then
                         Utils.saveKey(decrypted)
-                        print("[NexusBounty] [+] Key file migrated to NXS v2 format")
+                        print("[HOÀNG ANH GAMER] [+] Key file migrated to NXS v2 format")
                     end
                 end
             end
@@ -1023,10 +1023,10 @@ _modules["utils"] = function()
                     if err == "migrated_from_v1" then
                         Utils._statsCache = stats
                         Utils._writeStatsToDisk(stats)
-                        print("[NexusBounty] [+] Stats file migrated to NXS v2 format")
+                        print("[HOÀNG ANH GAMER] [+] Stats file migrated to NXS v2 format")
                     end
                 else
-                    print("[NexusBounty] [!] Stats file corrupted: " .. (err or "unknown"))
+                    print("[HOÀNG ANH GAMER] [!] Stats file corrupted: " .. (err or "unknown"))
                 end
             end
         end)
@@ -1451,7 +1451,7 @@ _modules["utils"] = function()
         local writeFile = writefile or function() end
     
         if isFile(soundFile) then
-            print("[NexusBounty] [*] Sound already cached")
+            print("[HOÀNG ANH GAMER] [*] Sound already cached")
             return soundFile
         end
     
@@ -1464,11 +1464,11 @@ _modules["utils"] = function()
             pcall(function()
                 writeFile(soundFile, content)
             end)
-            print("[NexusBounty] [+] Sound downloaded and cached")
+            print("[HOÀNG ANH GAMER] [+] Sound downloaded and cached")
             return soundFile
         end
     
-        print("[NexusBounty] [!] Failed to download sound")
+        print("[HOÀNG ANH GAMER] [!] Failed to download sound")
         return nil
     end
     
@@ -1515,7 +1515,7 @@ _modules["utils"] = function()
             end)
         end)
     
-        print("[NexusBounty] [>] Playing startup sound")
+        print("[HOÀNG ANH GAMER] [>] Playing startup sound")
         return true
     end
     
@@ -1870,9 +1870,9 @@ _modules["config"] = function()
     
     -- User-configurable options
     local USER_CONFIG = {
-        Fruit = "T-Rex",         -- Default test fruit
-        Region = "Singapore",        -- Default test region
-        Faction = "Pirate",       -- Default test faction
+        Fruit = "Auto",         -- Auto-select best fruit
+        Region = "Auto",        -- Auto-select best region
+        Faction = "Auto",       -- Auto-select faction
         StartupSound = true,    -- Play bankai sound on awakening/v4
         SoundUrl = "",          -- Custom startup sound URL (mp3/ogg) - leave empty for default
         Webhook = "",           -- Discord webhook URL
@@ -2105,7 +2105,7 @@ _modules["config"] = function()
         -- Save the merged config
         Config.saveToFile()
     
-        print("[NexusBounty] [+] Config initialized")
+        print("[HOÀNG ANH GAMER] [+] Config initialized")
         return finalConfig
     end
     
@@ -2152,7 +2152,7 @@ _modules["config"] = function()
             local oldFile = "Nexus/Data/NexusBounty_Config.nxs"
             if fs.fileExists(oldFile) then
                 -- Old format can't be read (encryption funcs removed), treat as first run
-                print("[NexusBounty] [!] Old .nxs config found, migrating to JSON format")
+                print("[HOÀNG ANH GAMER] [!] Old .nxs config found, migrating to JSON format")
             end
             return nil, true
         end
@@ -2166,7 +2166,7 @@ _modules["config"] = function()
         if success and type(decoded) == "table" then
             config = decoded
         else
-            print("[NexusBounty] [!] Config file corrupted, using defaults")
+            print("[HOÀNG ANH GAMER] [!] Config file corrupted, using defaults")
         end
     
         return config, isFirstRun
@@ -2305,7 +2305,9 @@ _modules["auth"] = function()
     -- Set your ONE authentication key here.
     -- Do not commit a real production secret to a public repository.
     local SINGLE_AUTH_KEY = "NEXUS-TEST-2026"
-    local DEV_BYPASS_AUTH = true
+
+    -- Development-only switch. Keep false for normal authentication.
+    local DEV_MODE = true
 
     Auth.IsAuthenticated = false
     Auth.KeyData = nil
@@ -2313,19 +2315,9 @@ _modules["auth"] = function()
 
     function Auth.init(utilsModule)
         Utils = utilsModule
-        Auth.IsAuthenticated = DEV_BYPASS_AUTH == true
-        Auth.KeyData = DEV_BYPASS_AUTH and {
-            key = SINGLE_AUTH_KEY,
-            expiresIn = math.huge,
-            hwidBound = false,
-            isFreeKey = false,
-            isPremium = true,
-            discordLinked = false
-        } or nil
+        Auth.IsAuthenticated = false
+        Auth.KeyData = nil
         Auth.FreeKeyData = nil
-        if DEV_BYPASS_AUTH then
-            print("[NexusBounty] DEV auth bypass enabled")
-        end
     end
 
     local function normalizeKey(key)
@@ -2333,6 +2325,20 @@ _modules["auth"] = function()
             return ""
         end
         return key:gsub("^%s+", ""):gsub("%s+$", "")
+    end
+
+    function Auth.enableDevMode()
+        if not DEV_MODE then return false end
+        Auth.IsAuthenticated = true
+        Auth.KeyData = {
+            key = "DEV_MODE",
+            expiresIn = math.huge,
+            hwidBound = false,
+            isFreeKey = false,
+            isPremium = true,
+            discordLinked = false
+        }
+        return true
     end
 
     function Auth.validateKey(key, callback)
@@ -2429,7 +2435,7 @@ _modules["auth"] = function()
 
     function Auth.openGetKeyPage()
         if Utils and Utils.notify then
-            Utils.notify("NexusBounty", "Enter the configured single authentication key.", 4)
+            Utils.notify("HOÀNG ANH GAMER", "Enter the configured single authentication key.", 4)
         end
     end
 
@@ -3206,7 +3212,7 @@ _modules["ui"] = function()
         headerBar.Parent = popup
         
         local isFirstRun = Config and Config.isFirstRun()
-        local titleText = isFirstRun and "⚡ Welcome to NexusBounty!" or "⚙ Configuration"
+        local titleText = isFirstRun and "⚡ Welcome to HOÀNG ANH GAMER!" or "⚙ Configuration"
         local titleLabel = createText(headerBar, titleText, {
             position = UDim2.new(0, 14, 0, 0),
             size = UDim2.new(0.7, 0, 1, 0),
@@ -3767,7 +3773,7 @@ _modules["ui"] = function()
         testWebhookBtn.MouseButton1Click:Connect(function()
             local webhookUrl = Config.get("Webhook") or ""
             if webhookUrl == "" or not webhookUrl:match("https://discord.com/api/webhooks/") then
-                Utils.notify("NexusBounty", "[!] Please enter a valid Discord webhook URL")
+                Utils.notify("HOÀNG ANH GAMER", "[!] Please enter a valid Discord webhook URL")
                 return
             end
             
@@ -3785,10 +3791,10 @@ _modules["ui"] = function()
                 
                 if success then
                     pulseElement(testWebhookBtn, Colors.Success, 0.3)
-                    Utils.notify("NexusBounty", "[+] Webhook test successful!")
+                    Utils.notify("HOÀNG ANH GAMER", "[+] Webhook test successful!")
                 else
                     pulseElement(testWebhookBtn, Colors.Error, 0.3)
-                    Utils.notify("NexusBounty", "[!] Webhook test failed!")
+                    Utils.notify("HOÀNG ANH GAMER", "[!] Webhook test failed!")
                 end
             end)
         end)
@@ -3824,7 +3830,7 @@ _modules["ui"] = function()
             -- Force save all config then close popup
             Config.saveToFile()
             pulseElement(saveBtn, Colors.Success, 0.3)
-            Utils.notify("NexusBounty", "[+] Configuration saved!")
+            Utils.notify("HOÀNG ANH GAMER", "[+] Configuration saved!")
             task.delay(0.4, closePopup)
         end)
         
@@ -3869,11 +3875,11 @@ _modules["ui"] = function()
                 if ok then
                     debugBtn.Text = "\xE2\x9C\x85 Sent!"
                     pulseElement(debugBtn, Colors.Success, 0.3)
-                    Utils.notify("NexusBounty", "[+] Debug file shared with admins!")
+                    Utils.notify("HOÀNG ANH GAMER", "[+] Debug file shared with admins!")
                 else
                     debugBtn.Text = "\xE2\x9D\x8C Failed"
                     pulseElement(debugBtn, Colors.Error, 0.3)
-                    Utils.notify("NexusBounty", "[!] Failed to share debug file")
+                    Utils.notify("HOÀNG ANH GAMER", "[!] Failed to share debug file")
                 end
                 task.delay(2, function()
                     debugBtn.Text = "\xF0\x9F\x93\xA4 Share Debug File"
@@ -3929,7 +3935,7 @@ _modules["ui"] = function()
                 end
             end)
             tween(container, {BackgroundColor3 = Color3.fromRGB(80, 200, 120)}, 0.15)
-            if Utils then Utils.notify("NexusBounty", "[+] Discord invite copied!") end
+            if Utils then Utils.notify("HOÀNG ANH GAMER", "[+] Discord invite copied!") end
             task.delay(1, function()
                 if container and container.Parent then
                     tween(container, {BackgroundColor3 = Color3.fromRGB(88, 101, 242)}, 0.3)
@@ -4100,7 +4106,7 @@ _modules["ui"] = function()
         headerContainer.Size = UDim2.new(1, -p*2, 0, 24)
         headerContainer.Parent = dashboard
         
-        local header = createText(headerContainer, "NexusBounty v6.5", {
+        local header = createText(headerContainer, "HOÀNG ANH GAMER v6.5", {
             position = UDim2.new(0, 0, 0, 0),
             size = UDim2.new(1, -30, 1, 0),
             variant = "Title",
@@ -4331,7 +4337,7 @@ _modules["ui"] = function()
         -- Kill GFX — Coming Soon (disabled)
         killGfxBtn.MouseButton1Click:Connect(function()
             killGfxBtn.Text = "Soon™"
-            if Utils then Utils.notify("NexusBounty", "Kill GFX is coming soon!") end
+            if Utils then Utils.notify("HOÀNG ANH GAMER", "Kill GFX is coming soon!") end
             task.delay(2, function()
                 if killGfxBtn and killGfxBtn.Parent then
                     killGfxBtn.Text = "Kill GFX"
@@ -4637,7 +4643,7 @@ _modules["ui"] = function()
         versionLabel.Position = UDim2.new(0.5, 0, 1, -15)
         versionLabel.Size = UDim2.new(0, 200, 0, 14)
         versionLabel.Font = Enum.Font.Gotham
-        versionLabel.Text = "NexusBounty v6.5"
+        versionLabel.Text = "HOÀNG ANH GAMER v6.5"
         versionLabel.TextColor3 = Color3.fromRGB(60, 60, 90)
         versionLabel.TextSize = 10
         versionLabel.TextTransparency = 1
@@ -5803,7 +5809,7 @@ _modules["ui"] = function()
                 -- Show config overlay with message
                 task.delay(0.3, function()
                     UI.openConfig()
-                    if Utils then Utils.notify("NexusBounty", "Please set up your configuration before starting!") end
+                    if Utils then Utils.notify("HOÀNG ANH GAMER", "Please set up your configuration before starting!") end
                 end)
             else
                 if UI.KeyScreen then UI.KeyScreen.Visible = false end
@@ -5927,13 +5933,18 @@ _modules["ui"] = function()
             end)
         end)
         
-        -- Authentication gate: DEV mode may already be authenticated.
-        if Auth and Auth.isAuthenticated and Auth.isAuthenticated() then
+        -- Development mode: skip the key screen only for local debugging.
+        if Auth and Auth.enableDevMode and Auth.enableDevMode() then
             if UI.KeyScreen then UI.KeyScreen.Visible = false end
             if UI.Dashboard then UI.Dashboard.Visible = true end
             UI.startUpdateLoop()
-            if Utils then Utils.notify("NexusBounty", "Developer authentication bypass active.", 3) end
-            -- In dev-test mode, use the configured defaults and do not block the combat start with the config dialog.
+            if Config and (Config.isFirstRun() or not Config.isConfigured()) then
+                task.delay(0.5, function()
+                    UI.openConfig()
+                    if Utils then Utils.notify("HOÀNG ANH GAMER", "DEV MODE: authentication skipped for testing.") end
+                end)
+            end
+        -- Check for cached key (auto-login)
         elseif Auth then
             Auth.tryCachedKey(function(success, message)
                 if success then
@@ -5941,13 +5952,13 @@ _modules["ui"] = function()
                     if UI.KeyScreen then UI.KeyScreen.Visible = false end
                     if UI.Dashboard then UI.Dashboard.Visible = true end
                     UI.startUpdateLoop()
-                    if Utils then Utils.notify("NexusBounty", "Auto-logged in!", 3) end
+                    if Utils then Utils.notify("HOÀNG ANH GAMER", "Auto-logged in!", 3) end
                     
                     -- Check if config still needs setup (first run or unconfigured)
                     if Config and (Config.isFirstRun() or not Config.isConfigured()) then
                         task.delay(0.5, function()
                             UI.openConfig()
-                            if Utils then Utils.notify("NexusBounty", "Please set up your configuration!") end
+                            if Utils then Utils.notify("HOÀNG ANH GAMER", "Please set up your configuration!") end
                         end)
                     end
                 else
@@ -6282,7 +6293,7 @@ _modules["ui"] = function()
         
         local island = UI.DynamicIsland
         if not island or not island.Parent then
-            print("[NexusBounty]", text)
+            print("[HOÀNG ANH GAMER]", text)
             return
         end
         
@@ -6498,7 +6509,7 @@ _modules["ui"] = function()
         end
         UI.Connections = {}
         
-        print("[NexusBounty] [*] UI connections cleaned up")
+        print("[HOÀNG ANH GAMER] [*] UI connections cleaned up")
         
         pcall(function() 
             tween(UI.Blur, {Size = 0}, 0.3)
@@ -6637,7 +6648,7 @@ _modules["ui"] = function()
             end)
             
             if Utils then
-                Utils.notify("NexusBounty", "[*] Graphics killed! Maximum FPS mode.")
+                Utils.notify("HOÀNG ANH GAMER", "[*] Graphics killed! Maximum FPS mode.")
                 Utils.logDebug(Utils.DEBUG_LEVELS.INFO, "UI", "Kill All Graphics executed (enhanced)")
             end
         end)
@@ -6808,7 +6819,7 @@ _modules["ui"] = function()
             local duration = notif.duration or 3.5
             local icon = notif.icon or autoIcon(text)
     
-            -- Strip the "[NexusBounty]" / "NexusBounty" prefix (the title is redundant in-island)
+            -- Strip the "[NexusBounty]" / "HOÀNG ANH GAMER" prefix (the title is redundant in-island)
             text = text:gsub("^%[NexusBounty%]%s*", ""):gsub("^NexusBounty%s*", "")
     
             local island = UI.DynamicIsland
@@ -7110,11 +7121,11 @@ _modules["main"] = function()
     -- ============================================
     function Main.start()
         Main.Running = true
-        print("[NexusBounty] [HYPER] Main.start() called")
+        print("[HOÀNG ANH GAMER] [HYPER] Main.start() called")
         task.spawn(function()
             local ok, err = xpcall(function()
     
-            print("[NexusBounty] [HYPER] task.spawn started")
+            print("[HOÀNG ANH GAMER] [HYPER] task.spawn started")
     
             local Players = game:GetService("Players")
             local RunService = game:GetService("RunService")
@@ -7128,13 +7139,13 @@ _modules["main"] = function()
             local SoundService = game:GetService("SoundService")
             local VirtualInputManager = game:GetService("VirtualInputManager")
     
-            print("[NexusBounty] [HYPER] Services loaded")
+            print("[HOÀNG ANH GAMER] [HYPER] Services loaded")
     
             repeat task.wait() until game:IsLoaded()
     
             local lp = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait() and Players.LocalPlayer
     
-            print("[NexusBounty] [HYPER] LocalPlayer: " .. tostring(lp))
+            print("[HOÀNG ANH GAMER] [HYPER] LocalPlayer: " .. tostring(lp))
     
             local _env = getgenv()
             _env.NexusShuttingDown = false
@@ -7155,7 +7166,7 @@ _modules["main"] = function()
                 end)
             end
     
-            print("[NexusBounty] [HYPER] Stats synced")
+            print("[HOÀNG ANH GAMER] [HYPER] Stats synced")
     
             -- Kick detection / auto-rejoin
             pcall(function()
@@ -7168,7 +7179,7 @@ _modules["main"] = function()
                 end)
             end)
     
-            print("[NexusBounty] [HYPER] Kick detection setup")
+            print("[HOÀNG ANH GAMER] [HYPER] Kick detection setup")
     
             -- ============================================
             -- TEAM SELECTION (only if character not yet spawned)
@@ -7176,7 +7187,7 @@ _modules["main"] = function()
             -- and replaced with "Main", so we MUST NOT try to find it
             -- ============================================
             if not (lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")) then
-                print("[NexusBounty] [HYPER] Character not spawned — handling team selection")
+                print("[HOÀNG ANH GAMER] [HYPER] Character not spawned — handling team selection")
                 local playerGui = lp:WaitForChild("PlayerGui")
                 local mainGui = playerGui:WaitForChild("Main (minimal)")
     
@@ -7223,10 +7234,10 @@ _modules["main"] = function()
                     hrp = char:FindFirstChild("HumanoidRootPart")
                 until hrp
             else
-                print("[NexusBounty] [HYPER] Character already exists — skipping team selection")
+                print("[HOÀNG ANH GAMER] [HYPER] Character already exists — skipping team selection")
             end
     
-            print("[NexusBounty] [HYPER] Character ready — initializing combat systems")
+            print("[HOÀNG ANH GAMER] [HYPER] Character ready — initializing combat systems")
     
             -- ============================================
             -- CAMERA SHAKE DISABLE (non-blocking)
@@ -7288,7 +7299,7 @@ _modules["main"] = function()
             local FruitAttackRange = 100
             local LOW_HEALTH_THRESHOLD = 5000
             local SAFE_HEALTH_THRESHOLD = 9000
-            local ESCAPE_HEIGHT = 273861
+            local ESCAPE_HEIGHT = 12
             local InstaTpConnection = nil
             local SelectedPlayer = nil
             local CurrentTargetPlayer = nil
@@ -7532,7 +7543,7 @@ _modules["main"] = function()
                             local hrp = char:FindFirstChild("HumanoidRootPart")
                             if hrp then
                                 local pos = hrp.Position
-                                hrp.CFrame = CFrame.new(pos.X, pos.Y + 273861, pos.Z)
+                                hrp.CFrame = CFrame.new(pos.X, pos.Y, pos.Z)
                             end
                         end
                         task.wait(0.05)
@@ -7547,57 +7558,9 @@ _modules["main"] = function()
                 end
     
                 local PlayerGui = lp.PlayerGui
-
-                -- Robust server-hop fallback: use Roblox's public server list when
-                -- the in-game ServerBrowser is unavailable or broken.
-                local function fallbackServerHop()
-                    local requestFn = request or http_request or (syn and syn.request) or (http and http.request)
-                    local candidates = {}
-
-                    pcall(function()
-                        if requestFn then
-                            local cursor = ""
-                            for _ = 1, 3 do
-                                local url = "https://games.roblox.com/v1/games/" .. tostring(game.PlaceId) .. "/servers/Public?sortOrder=Asc&limit=100"
-                                if cursor ~= "" then
-                                    url = url .. "&cursor=" .. HttpService:UrlEncode(cursor)
-                                end
-                                local response = requestFn({Url = url, Method = "GET"})
-                                local body = response and (response.Body or response.body)
-                                if not body then break end
-                                local decoded = HttpService:JSONDecode(body)
-                                for _, server in ipairs(decoded.data or {}) do
-                                    if server.id and server.id ~= game.JobId and (server.playing or 0) < (server.maxPlayers or math.huge) then
-                                        table.insert(candidates, server.id)
-                                    end
-                                end
-                                cursor = decoded.nextPageCursor or ""
-                                if cursor == "" then break end
-                            end
-                        end
-                    end)
-
-                    if #candidates > 0 then
-                        local target = candidates[math.random(1, #candidates)]
-                        local ok, err = pcall(function()
-                            TeleportService:TeleportToPlaceInstance(game.PlaceId, target, lp)
-                        end)
-                        if ok then return true end
-                        warn("[NexusBounty] Server hop teleport failed: " .. tostring(err))
-                    end
-
-                    -- Last-resort random rejoin when the server list API is unavailable.
-                    local ok = pcall(function()
-                        TeleportService:Teleport(game.PlaceId, lp)
-                    end)
-                    return ok
-                end
-
                 if not PlayerGui:FindFirstChild("ServerBrowser") then
-                    local hopped = fallbackServerHop()
-                    if not hopped then
-                        getgenv().IsServerHopping = false
-                    end
+                    local _env2 = getgenv()
+                    _env2.IsServerHopping = false
                     return
                 end
                 PlayerGui.ServerBrowser.Enabled = true
@@ -7606,10 +7569,8 @@ _modules["main"] = function()
                 local SearchRegion = Filters and Filters:FindFirstChild("SearchRegion")
                 local TextBox = SearchRegion and SearchRegion:FindFirstChild("TextBox")
                 if not TextBox then
-                    local hopped = fallbackServerHop()
-                    if not hopped then
-                        getgenv().IsServerHopping = false
-                    end
+                    local _env3 = getgenv()
+                    _env3.IsServerHopping = false
                     return
                 end
                 TextBox.Text = Selected_Region
@@ -7759,7 +7720,13 @@ _modules["main"] = function()
                                         predictedPos = currentPos + (calculatedVelocity * PREDICTION_TIME)
                                     end
                                 end
-                                hrp.CFrame = CFrame.new(predictedPos) * CFrame.new(0, YOffset, 0)
+                                local currentY = hrp.Position.Y
+                                local targetY = predictedPos.Y + YOffset
+                                local clampedY = math.clamp(targetY, currentY - 35, currentY + 35)
+                                local finalPos = Vector3.new(predictedPos.X, clampedY, predictedPos.Z)
+                                hrp.CFrame = CFrame.new(finalPos)
+                                hrp.AssemblyLinearVelocity = Vector3.zero
+                                hrp.AssemblyAngularVelocity = Vector3.zero
                             end
                         else
                             if PlayerPositionHistory[SelectedPlayer] then
@@ -7854,12 +7821,12 @@ _modules["main"] = function()
                 end)
             end)
     
-            print("[NexusBounty] [HYPER] All systems initialized — starting combat loops")
+            print("[HOÀNG ANH GAMER] [HYPER] All systems initialized — starting combat loops")
     
             -- ============================================
             -- CONTINUOUS M1 ATTACK LOOP — NEVER STOPS
             -- ============================================
-            print("[NexusBounty] [HYPER] Starting M1 attack loop")
+            print("[HOÀNG ANH GAMER] [HYPER] Starting M1 attack loop")
             task.spawn(function()
                 while true do
                     task.wait(0.01)
@@ -7873,7 +7840,7 @@ _modules["main"] = function()
             -- ============================================
             -- TARGET CYCLE LOOP — aggressive 0.4s cycle
             -- ============================================
-            print("[NexusBounty] [HYPER] Starting target cycle loop")
+            print("[HOÀNG ANH GAMER] [HYPER] Starting target cycle loop")
             task.spawn(function()
                 task.wait(3)
                 local currentIndex = 1
@@ -7930,7 +7897,7 @@ _modules["main"] = function()
             -- ============================================
             -- T-REX COMBAT LOOP
             -- ============================================
-            print("[NexusBounty] [HYPER] Starting T-Rex combat loop")
+            print("[HOÀNG ANH GAMER] [HYPER] Starting T-Rex combat loop")
             local Buso = { "Buso" }
             local SafeZoneActive = false
             task.spawn(function()
@@ -7985,7 +7952,7 @@ _modules["main"] = function()
             -- ============================================
             -- MAIN UTILITY LOOP (PvP, antimover, v4) — keeps thread alive
             -- ============================================
-            print("[NexusBounty] [HYPER] Starting PvP/utility loop — SCRIPT IS NOW FULLY ACTIVE")
+            print("[HOÀNG ANH GAMER] [HYPER] Starting PvP/utility loop — SCRIPT IS NOW FULLY ACTIVE")
             while wait(1) do
                 pcall(function()
                     PvpEnable()
@@ -7998,7 +7965,7 @@ _modules["main"] = function()
                 return tostring(e) .. "\n" .. debug.traceback()
             end)
             if not ok then
-                warn("[NexusBounty] [HYPER] FATAL ERROR: " .. tostring(err))
+                warn("[HOÀNG ANH GAMER] [HYPER] FATAL ERROR: " .. tostring(err))
             end
         end) -- End task.spawn
     end
@@ -8019,7 +7986,7 @@ _modules["main"] = function()
             pcall(function() Utils.flushStats() end)
         end
     
-        print("[NexusBounty] [*] Script stopped - all connections cleaned up")
+        print("[HOÀNG ANH GAMER] [*] Script stopped - all connections cleaned up")
     end
     
     return Main
@@ -8031,7 +7998,7 @@ end
 
 --[[
     ╔════════════════════════════════════════════════════════════════╗
-    ║                       NexusBounty                              ║
+    ║                    HOÀNG ANH GAMER                            ║
     ║              Glassmorphic Bounty Hunting System                ║
     ║                       Version 5.3                              ║
     ╚════════════════════════════════════════════════════════════════╝
@@ -8068,7 +8035,7 @@ local function loadModule(name)
     if _modules[name] then
         local ok, result = pcall(_modules[name])
         if ok then
-            print("[NexusBounty] [+] Module loaded: " .. name)
+            print("[HOÀNG ANH GAMER] [+] Module loaded: " .. name)
             return result
         else
             local errMsg = "[NexusBounty] [!] Module error (" .. name .. "): " .. tostring(result)
@@ -8087,7 +8054,7 @@ end
 -- INITIALIZATION
 -- ============================================
 
-print("[NexusBounty] Loading modules...")
+print("[HOÀNG ANH GAMER] Loading modules...")
 
 local Utils = loadModule("utils")
 local Config = loadModule("config")
@@ -8095,64 +8062,47 @@ local Auth = loadModule("auth")
 local UI = loadModule("ui")
 local Main = loadModule("main")
 
-print("[NexusBounty] Modules loaded!")
+print("[HOÀNG ANH GAMER] Modules loaded!")
 
 -- Initialize
 Config.init()
 Auth.init(Utils)
 -- Main.init deferred until auth
 
-print("[NexusBounty] Config: Fruit=" .. Config.get("Fruit") .. ", Region=" .. Config.get("Region") .. ", Faction=" .. Config.get("Faction"))
+print("[HOÀNG ANH GAMER] Config: Fruit=" .. Config.get("Fruit") .. ", Region=" .. Config.get("Region") .. ", Faction=" .. Config.get("Faction"))
 
 -- ============================================
 -- INITIALIZE UI (KEY SYSTEM)
 -- ============================================
 
-print("[NexusBounty] Initializing UI...")
+print("[HOÀNG ANH GAMER] Initializing UI...")
 
 -- Init UI first so Key System shows up
 UI.init(Utils, Config, Auth)
 
--- Dev-test: keep the UI available via RightControl, but do not leave it covering the game.
-task.defer(function()
-    pcall(function()
-        if Auth and Auth.isAuthenticated() and UI.MainFrame then
-            UI.MainFrame.Visible = false
-        end
-    end)
-end)
-
-print("[NexusBounty] UI initialized; combat startup continues in background")
+print("[HOÀNG ANH GAMER] UI ready! Waiting for authentication...")
 
 -- ============================================
 -- MAIN LOGIC LOOP
 -- ============================================
 
 task.spawn(function()
-    -- Dev-test mode: auth is local and config has working defaults.
+    -- 1. Wait for Auth (DEV_MODE is explicitly enabled above for local debugging)
+    if Auth.enableDevMode then Auth.enableDevMode() end
     while not Auth.isAuthenticated() do
         task.wait(0.5)
     end
     
-    print("[NexusBounty] Authenticated! Loading character...")
+    print("[HOÀNG ANH GAMER] Authenticated! Loading character...")
     
+    -- 2. Init Main Logic (Strictly after Auth)
     Main.init(Utils, Config, UI)
     
-    -- Use defaults immediately; only wait if a genuinely incomplete config remains.
-    local deadline = os.clock() + 10
-    while not Config.isConfigured() and os.clock() < deadline do
-        task.wait(0.25)
+    -- 3. Wait for Configuration (UI) to be set by the user or via getgenv().Config
+    while not Config.isConfigured() do
+        task.wait(0.5)
     end
-    if not Config.isConfigured() then
-        warn("[NexusBounty] Config incomplete; using fallback defaults")
-        if Config.Values then
-            Config.Values.Fruit = Config.Values.Fruit ~= "Auto" and Config.Values.Fruit or "T-Rex"
-            Config.Values.Region = Config.Values.Region ~= "Auto" and Config.Values.Region or "Singapore"
-            Config.Values.Faction = Config.Values.Faction ~= "Auto" and Config.Values.Faction or "Pirate"
-        end
-        Main.init(Utils, Config, UI)
-    end
-    print("[NexusBounty] Fully configured! Proceeding...")
+    print("[HOÀNG ANH GAMER] Fully configured! Proceeding...")
 
     -- 4. Wait for Character & Select Team
     local playerGui
@@ -8209,7 +8159,7 @@ task.spawn(function()
         end
         
         if attempt > 10 then
-            print("[NexusBounty] [!] Auto-team selection taking too long. Click it manually!")
+            print("[HOÀNG ANH GAMER] [!] Auto-team selection taking too long. Click it manually!")
         end
     until (char and hum) or getgenv().NexusShuttingDown
 
@@ -8219,7 +8169,7 @@ task.spawn(function()
         hrp = char:FindFirstChild("HumanoidRootPart")
     until hrp
 
-    print("[NexusBounty] Character loaded! Starting main logic...")
+    print("[HOÀNG ANH GAMER] Character loaded! Starting main logic...")
     
     -- 3. Start Main Logic
     Main.start()
@@ -8239,6 +8189,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
-print("[NexusBounty] Ready! Press RightControl to toggle UI.")
+print("[HOÀNG ANH GAMER] Ready! Press RightControl to toggle UI.")
 -- BUILD SHA-256: c8cf74dff0d501a3d6ce879164312bbc0f95a0db6b1160da9b622c95278f736d
--- END NEXUS FREE v7.4
+-- HOÀNG ANH GAMER — in-place compatibility build
+-- END HOÀNG ANH GAMER v7.4
